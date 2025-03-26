@@ -1,7 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from pathlib import Path
-from IPython.display import display
 from typing import Optional, Dict, Any, Union
 
 class GraphPlotter:
@@ -25,7 +24,6 @@ class GraphPlotter:
         base_font_size : int
             Base font size in points (default: 12)
         """
-        # Configure global plot settings
         plt.rcParams.update({
             'font.family': font_family,
             'font.size': base_font_size,
@@ -33,12 +31,10 @@ class GraphPlotter:
             'axes.labelsize': base_font_size,
         })
         np.set_printoptions(precision=2, suppress=True)
-        
-        # Initialize directory structure
+
         self.base_dir = Path(base_dir)
         self._ensure_directory_exists(self.base_dir)
         
-        # Set instance attributes
         self.figsize = figsize
         self.grid_style = grid_style or {'linestyle': '--', 'alpha': 0.6}
         self.current_figure: Optional[plt.Figure] = None
@@ -151,16 +147,13 @@ class GraphPlotter:
                 legend_defaults.update(legend_opts)
             self.current_axes.legend(**legend_defaults)
         
-        # Показываем график в notebook если требуется
         if show:
             plt.show()
         
-        # Сохраняем файл
         save_path = save_dir / filename
         self.current_figure.tight_layout()
         self.current_figure.savefig(save_path, bbox_inches='tight', dpi=dpi)
         
-        # Закрываем фигуру
         plt.close(self.current_figure)
         self.current_figure = None
         self.current_axes = None
