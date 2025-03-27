@@ -32,7 +32,6 @@ pyparsing==3.2.3
 python-dateutil==2.9.0.post0
 pytz==2025.2
 pyzmq==26.3.0
--e git+ssh://git@github.com/egoricsss/schemach_notebook.git@c92b37abdfad95aa8cb88d18c5ffe8d3104d2a25#egg=schemach_utils
 setuptools==78.1.0
 six==1.17.0
 stack-data==0.6.3

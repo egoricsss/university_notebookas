@@ -1,16 +1,22 @@
-import numpy as np
-import matplotlib.pyplot as plt
 from pathlib import Path
-from typing import Optional, Dict, Any, Union
+from typing import Any, Dict, Optional, Union
+
+import matplotlib.pyplot as plt
+import numpy as np
+
 
 class GraphPlotter:
-    def __init__(self, base_dir: str = "graphs", figsize: tuple = (10, 6), 
-                 grid_style: Optional[Dict[str, Any]] = {'linestyle': '--', 'alpha': 0.6},
-                 font_family: str = 'Liberation serif', 
-                 base_font_size: int = 12):
+    def __init__(
+        self,
+        base_dir: str = "graphs",
+        figsize: tuple = (10, 6),
+        grid_style: Optional[Dict[str, Any]] = {"linestyle": "--", "alpha": 0.6},
+        font_family: str = "Liberation serif",
+        base_font_size: int = 12,
+    ):
         """
         Initialize a plotting utility with consistent styling and automatic directory handling.
-        
+
         Parameters:
         -----------
         base_dir : str
@@ -24,19 +30,21 @@ class GraphPlotter:
         base_font_size : int
             Base font size in points (default: 12)
         """
-        plt.rcParams.update({
-            'font.family': font_family,
-            'font.size': base_font_size,
-            'axes.titlesize': base_font_size + 2,
-            'axes.labelsize': base_font_size,
-        })
+        plt.rcParams.update(
+            {
+                "font.family": font_family,
+                "font.size": base_font_size,
+                "axes.titlesize": base_font_size + 2,
+                "axes.labelsize": base_font_size,
+            }
+        )
         np.set_printoptions(precision=2, suppress=True)
 
         self.base_dir = Path(base_dir)
         self._ensure_directory_exists(self.base_dir)
-        
+
         self.figsize = figsize
-        self.grid_style = grid_style or {'linestyle': '--', 'alpha': 0.6}
+        self.grid_style = grid_style or {"linestyle": "--", "alpha": 0.6}
         self.current_figure: Optional[plt.Figure] = None
         self.current_axes: Optional[plt.Axes] = None
 
@@ -47,10 +55,12 @@ class GraphPlotter:
         except Exception as e:
             raise RuntimeError(f"Failed to create directory {path}: {str(e)}")
 
-    def create_figure(self, xlabel: str, ylabel: str, title: Optional[str] = None) -> None:
+    def create_figure(
+        self, xlabel: str, ylabel: str, title: Optional[str] = None
+    ) -> None:
         """
         Initialize a new figure with standardized formatting.
-        
+
         Parameters:
         -----------
         xlabel : str
@@ -67,11 +77,16 @@ class GraphPlotter:
         if title:
             self.current_axes.set_title(title)
 
-    def add_plot(self, x_data: np.ndarray, y_data: np.ndarray, 
-                label: Optional[str] = None, **plot_kwargs) -> None:
+    def add_plot(
+        self,
+        x_data: np.ndarray,
+        y_data: np.ndarray,
+        label: Optional[str] = None,
+        **plot_kwargs,
+    ) -> None:
         """
         Add a line plot to the current figure.
-        
+
         Parameters:
         -----------
         x_data : array-like
@@ -85,16 +100,21 @@ class GraphPlotter:
         """
         if self.current_axes is None:
             raise RuntimeError("Call create_figure() before adding plots")
-        
-        default_style = {'linewidth': 1.5, 'linestyle': '-'}
+
+        default_style = {"linewidth": 1.5, "linestyle": "-"}
         default_style.update(plot_kwargs)
         self.current_axes.plot(x_data, y_data, label=label, **default_style)
 
-    def add_scatter(self, x_data: np.ndarray, y_data: np.ndarray,
-                   label: Optional[str] = None, **scatter_kwargs) -> None:
+    def add_scatter(
+        self,
+        x_data: np.ndarray,
+        y_data: np.ndarray,
+        label: Optional[str] = None,
+        **scatter_kwargs,
+    ) -> None:
         """
         Add a scatter plot to the current figure.
-        
+
         Parameters:
         -----------
         x_data : array-like
@@ -108,18 +128,23 @@ class GraphPlotter:
         """
         if self.current_axes is None:
             raise RuntimeError("Call create_figure() before adding plots")
-        
-        default_style = {'s': 20, 'alpha': 0.7}
+
+        default_style = {"s": 20, "alpha": 0.7}
         default_style.update(scatter_kwargs)
         self.current_axes.scatter(x_data, y_data, label=label, **default_style)
 
-    def save(self, subdir: str = "", filename: str = "plot.png", 
-         dpi: int = 300, legend: bool = True, 
-         legend_opts: Optional[Dict[str, Any]] = None,
-         show: bool = True) -> None:
+    def save(
+        self,
+        subdir: str = "",
+        filename: str = "plot.png",
+        dpi: int = 300,
+        legend: bool = True,
+        legend_opts: Optional[Dict[str, Any]] = None,
+        show: bool = True,
+    ) -> None:
         """
         Save the current figure to disk with automatic directory handling and optional display.
-        
+
         Parameters:
         -----------
         subdir : str
@@ -137,26 +162,25 @@ class GraphPlotter:
         """
         if self.current_figure is None:
             raise RuntimeError("No active figure to save")
-        
+
         save_dir = self.base_dir / subdir
         self._ensure_directory_exists(save_dir)
-        
+
         if legend:
-            legend_defaults = {'loc': 'best', 'frameon': True}
+            legend_defaults = {"loc": "best", "frameon": True}
             if legend_opts:
                 legend_defaults.update(legend_opts)
             self.current_axes.legend(**legend_defaults)
-        
+
         if show:
             plt.show()
-        
+
         save_path = save_dir / filename
         self.current_figure.tight_layout()
-        self.current_figure.savefig(save_path, bbox_inches='tight', dpi=dpi)
-        
+        self.current_figure.savefig(save_path, bbox_inches="tight", dpi=dpi)
+
         plt.close(self.current_figure)
         self.current_figure = None
         self.current_axes = None
-        
+
         print(f"Plot saved: {save_path}")
-            
