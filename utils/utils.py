@@ -2,14 +2,97 @@ from pathlib import Path
 from typing import Any, Dict, Optional, Union
 
 import matplotlib.pyplot as plt
+from matplotlib.figure import Figure
+from matplotlib.axes import Axes
 import numpy as np
+
+
+import pandas as pd
+import numpy as np
+from pathlib import Path
+
+
+def print_data_from_txt(filename: str, gradient: bool = False):
+    """
+    Считывает экспериментальные данные из текстового файла и возвращает стилизованный DataFrame
+    """
+    # Чтение данных из файла
+    with open(filename, "r", encoding="utf-8") as f:
+        lines = [line.strip() for line in f if line.strip()]
+
+    # Парсинг заголовков и данных
+    headers = lines[0].split()
+    data = []
+    for line in lines[1:]:
+        values = line.replace("inf", "np.inf").split()
+        converted = [eval(v) if "np.inf" in v else float(v) for v in values]
+        data.append(converted)
+
+    # Создание DataFrame
+    df = pd.DataFrame(data, columns=headers)
+
+    # Функция для форматирования числовых значений
+    def format_value(x):
+        if x == np.inf:
+            return "inf"
+        return f"{np.round(x, 3)}" if isinstance(x, (int, float, np.float64)) else str(x)
+
+    # Стилизация таблицы
+    styled_df = df.style
+    styled_df.set_caption(f"Экспериментальные данные из файла: {Path(filename).name}")
+
+    # Форматирование всех ячеек
+    for col in df.columns:
+        styled_df.format({col: format_value})
+
+    # Визуальное оформление
+    styled_df.set_table_styles(
+        [
+            {
+                "selector": "caption",
+                "props": [
+                    ("font-size", "33px"),
+                    ("font-weight", "bold"),
+                    ("color", "#fb00ff"),
+                ],
+            },
+            {
+                "selector": "th",
+                "props": [
+                    ("background-color", "#00c8d6"),
+                    ("color", "#1F3864"),
+                    ("font-weight", "bold"),
+                    ("text-align", "center"),
+                ],
+            },
+            {"selector": "td", "props": [("text-align", "center")]},
+            {
+                "selector": "tr",
+                "props": [
+                    ("font-size", "25px"),
+                ],
+            },
+        ]
+    )
+
+    # Градиент для числовых столбцов
+    if gradient:
+        numeric_cols = df.select_dtypes(include=np.number).columns.tolist()
+        styled_df.background_gradient(
+            cmap="Purples",
+            subset=numeric_cols,
+            vmin=df[numeric_cols].min().min(),
+            vmax=df[numeric_cols].max().max(),
+        )
+
+    return styled_df
 
 
 class GraphPlotter:
     def __init__(
         self,
         base_dir: str = "graphs",
-        figsize: tuple = (10, 6),
+        figsize: tuple[int, int] = (10, 6), 
         grid_style: Optional[Dict[str, Any]] = {"linestyle": "--", "alpha": 0.6},
         font_family: str = "Liberation serif",
         base_font_size: int = 12,
@@ -45,8 +128,8 @@ class GraphPlotter:
 
         self.figsize = figsize
         self.grid_style = grid_style or {"linestyle": "--", "alpha": 0.6}
-        self.current_figure: Optional[plt.Figure] = None
-        self.current_axes: Optional[plt.Axes] = None
+        self.current_figure: Optional[Figure] = None
+        self.current_axes: Optional[Axes] = None
 
     def _ensure_directory_exists(self, path: Union[str, Path]) -> None:
         """Ensure target directory exists, create if necessary."""
@@ -170,7 +253,7 @@ class GraphPlotter:
             legend_defaults = {"loc": "best", "frameon": True}
             if legend_opts:
                 legend_defaults.update(legend_opts)
-            self.current_axes.legend(**legend_defaults)
+            self.current_axes.legend(**legend_defaults) # type: ignore 
 
         if show:
             plt.show()
